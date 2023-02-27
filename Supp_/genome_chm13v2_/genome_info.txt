@@ -1,5 +1,27 @@
 previuoly known as genome_dir
 including:
-RNACentral.20.T2T.sncRNA.bed
-CHM13.v2.0.gff3
-chm13v2.0.genome.fa
+  1. RNACentral.20.T2T.sncRNA.bed
+  2. CHM13.v2.0.gff3
+  3. chm13v2.0.genome.fa
+
+origin:
+1.ncRNA annotation:
+rnaCentral version 20, genome_coordinates - http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/genome_coordinates/bed/homo_sapiens.GRCh38.bed.gz
+filtered piRNA                            - RNA_Central_March22_GRCh38_no_piRNA.bed
+selected fields 1,2,3,4,6,14              - RNA_Central_March22_GRCh38_no_piRNA_select_fields.bed
+                                          - cut -f 4,6 RNA_Central_March22_GRCh38_no_piRNA_select_fields.bed | sort | uniq > id2type.txt
+                >>python3.8
+                >>import pandas as pd
+                >>true = pd.read_csv("id2type.txt", sep='\t', header=None, index_col=False, names=['ids', 'types'])
+                >>test = pd.read_csv("RNA_Central_March22_T2T_V2_liftOver.bed", sep='\t', header=None,  index_col=False, names=['chr', 'start', 'end', 'ids', 'strand'])
+                >>mrg = pd.merge(test, true,  on=['ids'], how='inner')
+                >>mrg.to_csv('RNA_Central_March22_T2T_V3_liftOver.bed', sep='\t', index =False, header = False)
+                - awk 'OFS="\t" {s= $5; $5=$6 ; $6=s; {print $0}}' RNA_Central_March22_T2T_V3_liftOver.bed > RNACentral.20.T2T.sncRNA.bed
+
+2.gene annotation - http://courtyard.gi.ucsc.edu/~mhauknes/T2T/t2t_Y/annotation_set/CHM13.v2.0.gff3
+
+3.genome assambly - https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz
+                - chm13v2.0.fa.gz
+                - gzip -d -c chm13v2.0.fa.gz | awk '{if (/^[">"]/) {print $0; next}}{print toupper($0)}' > chm13v2.0.genome.fa
+                
+  
